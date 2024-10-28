@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Enable And Add File",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "args": [
+                "-file=test/example-hook.sh"
+            ],
+            "env": {},
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Disable Hook",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "args": [
+                "-disable"
+            ],
+            "env": {},
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Enable Hook",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "args": [
+                "-enable"
+            ],
+            "env": {},
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
