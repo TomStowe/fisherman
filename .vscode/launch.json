@@ -26,6 +26,19 @@
             "cwd": "${workspaceFolder}"
         },
         {
+            "name": "Disable Hook For 1 Minute",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "args": [
+                "--disabled-for",
+                "1h"
+            ],
+            "env": {},
+            "cwd": "${workspaceFolder}"
+        },
+        {
             "name": "Enable Hook",
             "type": "go",
             "request": "launch",

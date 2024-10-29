@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestEnableHook(t *testing.T) {
@@ -62,8 +63,8 @@ func TestDisableHook(t *testing.T) {
 		t.Fatalf("Failed to read pre-commit hook: %v", err)
 	}
 
-	if !strings.HasPrefix(string(content), "#!/bin/sh\nexit 0") {
-		t.Fatalf("Expected pre-commit hook file to have 'exit 0' at the start.")
+	if !strings.HasPrefix(string(content), "#!/bin/sh\n# Pre-commit hook disabled by Fisherman\nexit 0") {
+		t.Fatalf("Expected pre-commit hook to be disabled.")
 	}
 }
 
@@ -120,5 +121,90 @@ func TestIsGitRepository(t *testing.T) {
 
 	if IsGitRepository() {
 		t.Fatal("Expected to not be a Git repository, but it was.")
+	}
+}
+
+// TestParseDuration verifies that parseDuration correctly parses shorthand duration strings.
+func TestParseDuration(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected time.Duration
+		hasError bool
+	}{
+		{"1h", time.Hour, false},
+		{"2d", 48 * time.Hour, false},
+		{"30m", 30 * time.Minute, false},
+		{"5", 0, true},                 // Invalid format
+		{"2x", 0, true},                // Unsupported unit
+		{"", 0, true},                  // Empty string
+		{"0d", 0, false},               // Zero duration
+		{"10h", 10 * time.Hour, false}, // Larger duration
+	}
+
+	for _, test := range tests {
+		result, err := parseDuration(test.input)
+		if (err != nil) != test.hasError {
+			t.Errorf("parseDuration(%s) error = %v, wantErr %v", test.input, err, test.hasError)
+			continue
+		}
+		if result != test.expected {
+			t.Errorf("parseDuration(%s) = %v, want %v", test.input, result, test.expected)
+		}
+	}
+}
+
+// TestRemoveTimeoutCheck verifies that removeTimeoutCheck correctly removes the timeout check from the script.
+func TestRemoveTimeoutCheck(t *testing.T) {
+	inputScript := `#!/bin/sh
+# Temporarily disabled by Fisherman
+current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+if [ "$current_date" \< "2099-12-31T23:59:59Z" ]; then
+    exit 0
+fi
+
+# Actual pre-commit script content
+echo "Running pre-commit checks"
+`
+	expectedOutput := `#!/bin/sh
+
+# Actual pre-commit script content
+echo "Running pre-commit checks"
+`
+
+	result := removeTimeoutCheck(inputScript)
+	if result != expectedOutput {
+		t.Errorf("removeTimeoutCheck() = %v, want %v", result, expectedOutput)
+	}
+}
+
+// TestTemporarilyDisableHook verifies that TemporarilyDisableHook injects a timeout check in the hook.
+func TestTemporarilyDisableHook(t *testing.T) {
+	hooksDir := filepath.Join(os.TempDir(), "test_hooks")
+	os.MkdirAll(hooksDir, 0755)
+	defer os.RemoveAll(hooksDir)
+
+	hookPath := filepath.Join(hooksDir, "pre-commit")
+	originalContent := "echo \"Running pre-commit checks\"\n"
+	fullContent := "#!/bin/sh\n" + originalContent
+	os.WriteFile(hookPath, []byte(fullContent), 0755)
+
+	// Temporarily disable the hook for 1 hour
+	err := TemporarilyDisableHook(hookPath, "1h")
+	if err != nil {
+		t.Fatalf("Failed to disable hook temporarily: %v", err)
+	}
+
+	// Verify the injected timeout check
+	data, err := os.ReadFile(hookPath)
+	if err != nil {
+		t.Fatalf("Failed to read hook file: %v", err)
+	}
+	content := string(data)
+
+	// Check if the timeout check and original content are present
+	if !strings.Contains(content, `current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`) ||
+		!strings.Contains(content, "exit 0") ||
+		!strings.Contains(content, originalContent) {
+		t.Errorf("Hook could not be temporarily disabled")
 	}
 }

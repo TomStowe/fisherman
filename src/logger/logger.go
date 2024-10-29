@@ -7,16 +7,22 @@ import (
 )
 
 var (
-	successColor = color.New(color.FgGreen).SprintFunc()
-	errorColor   = color.New(color.FgRed).SprintFunc()
+	successColour = color.New(color.FgGreen).SprintFunc()
+	warningColour = color.New(color.FgHiMagenta).SprintFunc()
+	errorColour   = color.New(color.FgRed).SprintFunc()
 )
 
 // LogSuccess prints a success message
 func LogSuccess(message string) {
-	fmt.Println(successColor(message))
+	fmt.Println(successColour(message))
+}
+
+// LogWarning prints a warning message
+func LogWarning(message string) {
+	fmt.Println(warningColour(message))
 }
 
 // LogError prints an error message
 func LogError(message string) {
-	fmt.Println(errorColor(message))
+	fmt.Println(errorColour(message))
 }

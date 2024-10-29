@@ -4,6 +4,7 @@ Fisherman is a simple cross-platform command-line tool for managing Git pre-comm
 ## Features
 - **Improve Code Quality**: Run code quality checks automatically on every commit.
 - **Enable/Disable Hooks**: Quickly disable/re-enable commit hooks with 1 command.
+- **Temporarily Disable Hooks**: Temporarily disable hooks for a set period if you need to get work done quickly with the `-disabled-for 1h` flag.
 - **Cross-Platform Support**: Works on macOS, Windows, and Linux.
 
 ## Installation
@@ -44,18 +45,40 @@ You can download the executable for your operating system from the [GitHub Relea
 
 Fisherman allows you to enable or disable Git pre-commit hooks with simple commands.
 
-Enable a Pre-Commit Hook
+### Setup and Enable a Pre-Commit Hook
 To enable a pre-commit hook using a script file:
 
 ```bash
 fisherman -file=path/to/your/hook_script.sh
 ```
 
-Disable the Pre-Commit Hook
+### Disable the Pre-Commit Hook
 To disable the pre-commit hook:
 
 ```bash
 fisherman -disable
+```
+
+### Temporarily Disable the Pre-Commit Hook
+To temporarily disable the pre-commit hook for 2 hours:
+
+```bash
+fisherman -disabled-for 2h
+```
+Where units are:
+| Unit | Value  |
+| ---- | ------ |
+| w    | week   |
+| d    | day    |
+| h    | hour   |
+| m    | minute |
+| s    | second |
+
+### Re-Enable the Pre-Commit Hook
+To re-enable an existing pre-commit hook:
+
+```bash
+fisherman -enable
 ```
 
 ## Contributing
